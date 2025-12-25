@@ -1,10 +1,28 @@
 import { useRef, useEffect } from 'react';
+import type { ReactNode, HTMLAttributes } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FadeContent = ({
+// Props interface
+interface FadeContentProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+  container?: HTMLElement | string | null;
+  blur?: boolean;
+  duration?: number; // in ms
+  ease?: string;
+  delay?: number; // in ms
+  threshold?: number; // 0-1
+  initialOpacity?: number; // 0-1
+  disappearAfter?: number; // in seconds
+  disappearDuration?: number; // in seconds
+  disappearEase?: string;
+  onComplete?: () => void;
+  onDisappearanceComplete?: () => void;
+}
+
+const FadeContent: React.FC<FadeContentProps> = ({
   children,
   container,
   blur = false,
@@ -21,19 +39,20 @@ const FadeContent = ({
   className = '',
   ...props
 }) => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    let scrollerTarget = container || document.getElementById('snap-main-container') || null;
-    if (typeof scrollerTarget === 'string') {
-      scrollerTarget = document.querySelector(scrollerTarget);
-    }
+    const scrollerTarget: HTMLElement | null =
+      typeof container === 'string'
+        ? (document.querySelector(container) as HTMLElement)
+        : container || document.getElementById('snap-main-container');
+
 
     const startPct = (1 - threshold) * 100;
-    const getSeconds = val => (val > 10 ? val / 1000 : val);
+    const getSeconds = (val: number) => (val > 10 ? val / 1000 : val);
 
     gsap.set(el, {
       autoAlpha: initialOpacity,
